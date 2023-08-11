@@ -4,11 +4,20 @@ import java.io.IOException;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jxmpp.jid.DomainBareJid;
+import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class Cuentas {
     public void Login (String username, String password) throws XmppStringprepException, InterruptedException{
@@ -42,8 +51,32 @@ public class Cuentas {
         }
     }
 
-    public void Register (String new_username, String new_password){
-        
+    public void Register(String new_username, String new_password) throws IOException {
+        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
+        try {
+            SmackConfiguration.DEBUG = true;
+
+            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+                    .setUsernameAndPassword(new_username, new_password)
+                    .setXmppDomain(xmppDomain)
+                    .setHost("alumchat.xyz")
+                    .setPort(5222)
+                    .setSecurityMode(SecurityMode.disabled)
+                    .build();
+
+            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+            connection.connect();
+
+            AccountManager accountManager = AccountManager.getInstance(connection);
+            accountManager.sensitiveOperationOverInsecureConnection(true);
+            accountManager.createAccount(Localpart.from(new_username), new_password);
+
+            System.out.println("Cuenta creada exitosamente");
+            connection.disconnect();
+        } 
+        catch (SmackException | XMPPException | InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

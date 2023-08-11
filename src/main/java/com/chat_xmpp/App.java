@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class App {
-    public static void main(String[] args) throws XmppStringprepException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         
         //Creamos un objeto scanner
         Scanner sc = new Scanner(System.in);
