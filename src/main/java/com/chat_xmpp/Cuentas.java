@@ -79,4 +79,34 @@ public class Cuentas {
         }
     }
 
+    public void DeleteAccount(String username, String password) throws XmppStringprepException, InterruptedException {
+        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
+        
+        try {
+            SmackConfiguration.DEBUG = true;
+    
+            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+                    .setUsernameAndPassword(username, password)
+                    .setXmppDomain(xmppDomain)
+                    .setHost("alumchat.xyz")
+                    .setPort(5222)
+                    .setSecurityMode(SecurityMode.disabled)
+                    .build();
+    
+            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+            connection.connect();
+            connection.login();
+    
+            AccountManager accountManager = AccountManager.getInstance(connection);
+            accountManager.sensitiveOperationOverInsecureConnection(true);
+            accountManager.deleteAccount();
+    
+            System.out.println("Cuenta eliminada exitosamente");
+            connection.disconnect();
+        } 
+        catch (SmackException | XMPPException | InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
