@@ -109,4 +109,35 @@ public class Cuentas {
         }
     }
 
+    public void Logout(String username, String password) throws XmppStringprepException, InterruptedException {
+        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
+    
+        try {
+            SmackConfiguration.DEBUG = true;
+    
+            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+                    .setUsernameAndPassword(username, password)
+                    .setXmppDomain(xmppDomain)
+                    .setHost("alumchat.xyz")
+                    .setPort(5222)
+                    .setSecurityMode(SecurityMode.disabled)
+                    .build();
+    
+            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+            connection.connect();
+            connection.login();
+    
+            // Realiza operaciones adicionales aquí después de la conexión exitosa.
+    
+            // Cerrar la sesión
+            connection.disconnect();
+    
+            System.out.println("Sesión cerrada exitosamente");
+        }
+        catch (SmackException | XMPPException | InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
 }
