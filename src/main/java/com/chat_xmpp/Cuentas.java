@@ -105,7 +105,7 @@ public class Cuentas {
         Roster roster = Roster.getInstanceFor(connection);
         Presence presence = roster.getPresence(connection.getUser().asEntityBareJidIfPossible());
     
-        System.out.println("Mi perfil: ");
+        System.out.println("\nMi perfil: ");
         System.out.println("Usuario: " + username);
         System.out.println("Estado: " + presence.getStatus());
         System.out.println("Modo: " + presence.getMode());
