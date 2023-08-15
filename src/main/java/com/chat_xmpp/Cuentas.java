@@ -1,13 +1,17 @@
 package com.chat_xmpp;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
@@ -15,37 +19,41 @@ import org.jxmpp.jid.DomainBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
-
 public class Cuentas {
-    public void Login (String username, String password) throws XmppStringprepException, InterruptedException{
-        // Configuración de la conexión
+    public AbstractXMPPConnection Login(String username, String password) throws XmppStringprepException {
+
+        String xmppDomainString = "alumchat.xyz"; 
+
+        DomainBareJid xmppDomain = JidCreate.domainBareFrom(xmppDomainString);
+
+        System.out.println("alumchat.xyz");
+
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                .setUsernameAndPassword(username, password)
-                .setXmppDomain("alumchat.xyz")
-                .setHost("alumchat.xyz")
-                .setPort(5222) // Puerto por defecto para XMPP
-                .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled) // Desactivar SSL/TLS para este ejemplo
-                .setCompressionEnabled(false)
-                .build();
+            .setUsernameAndPassword(username, password)
+            .setXmppDomain(xmppDomain)
+            .setHost("alumchat.xyz")
+            .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+            .build();
 
         AbstractXMPPConnection connection = new XMPPTCPConnection(config);
-
         try {
-            // Conexión al servidor
             connection.connect();
-            connection.login();
+            if (connection.isConnected()) {
+                System.out.println("\nConectando al server...\n");
+            }
+            connection.login(username, password);
 
-            // Si todo va bien, se mostrará este mensaje de conexión exitosa
-            System.out.println("Conexión exitosa al servidor XMPP");
-
-            // Realizar las operaciones adicionales aquí después de la conexión exitosa.
-
-            // Cerrar la conexión cuando hayas terminado de utilizarla
-            connection.disconnect();
-        } catch (SmackException | IOException | XMPPException e) {
-            // Si hay algún error en la conexión o autenticación, se mostrará el mensaje de error
-            System.out.println("Error al conectar o autenticar: " + e.getMessage());
+            if (connection.isAuthenticated()) {
+                System.out.println("\nAutenticación correcta\n");
+            } else {
+                System.out.println("\nOcurrió un error en la autenticación\n");
+            }
+        } catch (SmackException | IOException | XMPPException | InterruptedException e) {
+            e.printStackTrace();
         }
+
+        return connection;
+        
     }
 
     public void Register(String new_username, String new_password) throws IOException {
@@ -76,65 +84,44 @@ public class Cuentas {
         }
     }
 
-    public void DeleteAccount(String username, String password) throws XmppStringprepException, InterruptedException {
-        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
-        
+    public void DeleteAccount(AbstractXMPPConnection connection) throws InterruptedException {
         try {
-            SmackConfiguration.DEBUG = true;
-    
-            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                    .setUsernameAndPassword(username, password)
-                    .setXmppDomain(xmppDomain)
-                    .setHost("alumchat.xyz")
-                    .setPort(5222)
-                    .setSecurityMode(SecurityMode.disabled)
-                    .build();
-    
-            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
-            connection.connect();
-            connection.login();
-    
             AccountManager accountManager = AccountManager.getInstance(connection);
-            accountManager.sensitiveOperationOverInsecureConnection(true);
             accountManager.deleteAccount();
-    
-            System.out.println("Cuenta eliminada exitosamente");
-            connection.disconnect();
-        } 
-        catch (SmackException | XMPPException | InterruptedException | IOException e) {
-            e.printStackTrace();
+            System.out.println("\nCuenta eliminada exitosamente\n");
+        } catch (XMPPException | SmackException e) {
+            System.out.println("\nSe obtuvo un error al intentar borrar la cuenta: " + e.getMessage());
         }
     }
 
-    public void Logout(String username, String password) throws XmppStringprepException, InterruptedException {
-        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
-    
-        try {
-            SmackConfiguration.DEBUG = true;
-    
-            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                    .setUsernameAndPassword(username, password)
-                    .setXmppDomain(xmppDomain)
-                    .setHost("alumchat.xyz")
-                    .setPort(5222)
-                    .setSecurityMode(SecurityMode.disabled)
-                    .build();
-    
-            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
-            connection.connect();
-            connection.login();
-    
-            // Realiza operaciones adicionales aquí después de la conexión exitosa.
-    
-            // Cerrar la sesión
-            connection.disconnect();
-    
-            System.out.println("Sesión cerrada exitosamente");
-        }
-        catch (SmackException | XMPPException | InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+    public void Logout(AbstractXMPPConnection connection) {
+        connection.disconnect();
+        System.out.println("\nSesión cerrada exitosamente\n");
     }
     
+    
+    public void showProfile(AbstractXMPPConnection connection) {
+        String username = connection.getUser().toString();
+        Roster roster = Roster.getInstanceFor(connection);
+        Presence presence = roster.getPresence(connection.getUser().asEntityBareJidIfPossible());
+    
+        System.out.println("Mi perfil: ");
+        System.out.println("Usuario: " + username);
+        System.out.println("Estado: " + presence.getStatus());
+        System.out.println("Modo: " + presence.getMode());
+    }
+
+    public Presence getPresenceByOption(int option) {
+        switch (option) {
+            case 1:
+                return new Presence(Presence.Type.available);
+            case 2:
+                return new Presence(Presence.Type.available, "Estoy ausente", 1, Presence.Mode.away);
+            case 3:
+                return new Presence(Presence.Type.available, "No molestar", 1, Presence.Mode.dnd);
+            default:
+                return new Presence(Presence.Type.available);
+        }
+    }
 
 }
