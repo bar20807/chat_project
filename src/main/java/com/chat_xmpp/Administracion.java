@@ -38,6 +38,7 @@ public class Administracion{
                     System.out.println("\n¡Estado actualizado!\n");
                     break;
                 case 3:
+                    AdminMessageMenu(connection);
                     break;
                 case 4:
                     AdminContactMenu(connection);
@@ -94,6 +95,52 @@ public class Administracion{
                     System.out.println("\nIngrese el nombre de usuario del contacto que desea eliminar: ");
                     delete_contact = scanner.nextLine();
                     comunicacion.deleteContact(connection, delete_contact);
+                    break;
+                case 5:
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Opción inválida, intente nuevamente.\n");
+            }
+        }
+    }
+    //Menú de gestión de mensaje
+    private void AdminMessageMenu(AbstractXMPPConnection connection) throws XMPPException, SmackException, InterruptedException {
+        Comunicacion comunicacion = new Comunicacion();
+        boolean exit = false;
+        String direct_contact = " ";
+        String delete_contact = " ";
+        String contact_info = " ";
+        while (!exit) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("\nAdministrar mensajes: ");
+            System.out.println("1. Enviar mensaje directo");
+            System.out.println("2. Participar en chat grupal");
+            System.out.println("3. Definir mensaje de presencia");
+            System.out.println("4. Enviar/Recibir notificaciones");
+            System.out.println("5. Salir");
+            System.out.print("Ingrese la opción deseada: ");
+            int option = scanner.nextInt();
+
+            switch (option) {
+                case 1:
+                    scanner.nextLine();
+                    System.out.print("\nIngrese el nombre de usuario de quien desea enviarle mensaje: ");
+                    direct_contact = scanner.nextLine();
+                    comunicacion.sendMessage(connection, direct_contact);
+                    break;
+                case 2:
+               
+                    break;
+                case 3:
+                    scanner.nextLine();
+                    System.out.print("Ingrese el mensaje de presencia que desea definir: ");
+                    String status = scanner.nextLine();
+                    comunicacion.setPresence(connection, status);
+                    break;
+                
+                case 4:
+                    break;
                 case 5:
                     exit = true;
                     break;
