@@ -112,7 +112,8 @@ public class Administracion{
         }
     }
     //Menú de gestión de mensaje
-    private void AdminMessageMenu(AbstractXMPPConnection connection) throws XMPPException, SmackException, InterruptedException, XmppStringprepException {
+    private void AdminMessageMenu(AbstractXMPPConnection connection)
+            throws XMPPException, SmackException, InterruptedException, XmppStringprepException {
         Comunicacion comunicacion = new Comunicacion();
         boolean exit = false;
         String direct_contact = " ";
@@ -124,9 +125,8 @@ public class Administracion{
             System.out.println("1. Enviar mensaje directo");
             System.out.println("2. Interacción en chat grupal");
             System.out.println("3. Definir mensaje de presencia");
-            System.out.println("4. Enviar/Recibir notificaciones");
-            System.out.println("5. Enviar archivo");
-            System.out.println("6. Salir");
+            System.out.println("4. Enviar archivo");
+            System.out.println("5. Salir");
             System.out.print("Ingrese la opción deseada: ");
             int option = scanner.nextInt();
 
@@ -138,7 +138,7 @@ public class Administracion{
                     comunicacion.sendMessage(connection, direct_contact);
                     break;
                 case 2:
-                    //Llamamos al menú de interacción grupal
+                    // Llamamos al menú de interacción grupal
                     AdminGroupInteraction(connection);
                     break;
                 case 3:
@@ -147,13 +147,11 @@ public class Administracion{
                     String status = scanner.nextLine();
                     comunicacion.setPresence(connection, status);
                     break;
-                
                 case 4:
+                    scanner.nextLine();
+                    comunicacion.sendFileMessage(connection);
                     break;
                 case 5:
-                    System.out.println("Enviar");
-                    break;
-                case 6:
                     exit = true;
                     break;
                 default:

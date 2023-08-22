@@ -39,14 +39,12 @@ public class Cuentas {
     public String getPassword (){
         return password;
     }
-    //Método que recibe la contraseña
-    public AbstractXMPPConnection Login(String username, String password) throws XmppStringprepException {
 
+    //Método para retornar la configuración de la conexión
+    public XMPPTCPConnectionConfiguration getConfig() throws XmppStringprepException {
         String xmppDomainString = "alumchat.xyz"; 
 
         DomainBareJid xmppDomain = JidCreate.domainBareFrom(xmppDomainString);
-
-        System.out.println("alumchat.xyz");
 
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
             .setUsernameAndPassword(getUser(), getPassword())
@@ -55,7 +53,15 @@ public class Cuentas {
             .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
             .build();
 
-        AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+        return config;
+    }
+
+    //Método que recibe la contraseña
+    public AbstractXMPPConnection Login(String username, String password) throws XmppStringprepException {
+
+        System.out.println("alumchat.xyz");
+
+        AbstractXMPPConnection connection = new XMPPTCPConnection(getConfig());
         try {
             connection.connect();
             if (connection.isConnected()) {
@@ -77,19 +83,9 @@ public class Cuentas {
     }
 
     public void Register(String new_username, String new_password) throws IOException {
-        DomainBareJid xmppDomain = JidCreate.domainBareFrom("alumchat.xyz");
         try {
             SmackConfiguration.DEBUG = true;
-
-            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                    .setUsernameAndPassword(new_username, new_password)
-                    .setXmppDomain(xmppDomain)
-                    .setHost("alumchat.xyz")
-                    .setPort(5222)
-                    .setSecurityMode(SecurityMode.disabled)
-                    .build();
-
-            AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+            AbstractXMPPConnection connection = new XMPPTCPConnection(getConfig());
             connection.connect();
 
             AccountManager accountManager = AccountManager.getInstance(connection);

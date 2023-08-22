@@ -13,8 +13,12 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
+import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.muc.Occupant;
@@ -34,6 +38,8 @@ import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -305,7 +311,83 @@ public class Comunicacion {
                 System.out.println("Volviendo al menu.");
             }
     }
-
-    //Función para enviar archivos
 }
+
+    //Métodos para enviar archivos
+    public void sendFileMessage(AbstractXMPPConnection connection) {
+        ChatManager chatManager = ChatManager.getInstanceFor(connection);
+        chatManager.addIncomingListener(new IncomingChatMessageListener() {
+            @Override
+            public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
+                // En el caso que se recibe un mensaje, recibe la información de dicho mensaje.
+                if (message.getBody().startsWith("file://")) {
+                    // Contenido del archivo, y también formato del archivo final. También quien
+                    // mando el archivo y su contenido
+                    String base64File = message.getBody().substring(7);
+                    String fileType = message.getBody().substring(7, 7 + base64File.indexOf("://"));
+                    base64File = base64File.substring(base64File.indexOf("://") + 3);
+
+                    // Decodifica el archivo en bytes.
+                    byte[] file = java.util.Base64.getDecoder().decode(base64File);
+
+                    System.out.println("\nReceived file from " + from + ": " + fileType);
+
+                    File fileToSave = new File("C:\\Users\\barre\\chat_project\\recieved_file." + fileType);
+
+                    try {
+                        // Guarda los bytes del archivo en el disco.
+                        FileOutputStream fileOutputStream = new FileOutputStream(fileToSave);
+                        fileOutputStream.write(file);
+                        fileOutputStream.close();
+                    } catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+
+                } else {
+                    // Si solo es un mensaje cualquiera, muestra la información de este mensaje.
+                    System.out.println("New message from " + from + ": " + message.getBody());
+                }
+            }
+        });
+
+        Cuentas cuentaDomain = new Cuentas();
+        Scanner input = new Scanner(System.in);
+        System.out.println("Ingrese el usuario al que desea enviarle el archivo: ");
+        String username = input.nextLine();
+        System.out.println("Ingrese dirección del archivo: ");
+        String filePath = input.nextLine();
+        // Pide el usuario y la dirección del archivo a donde enviar.
+        File file = new File(filePath);
+
+        byte[] fileBytes = new byte[(int) file.length()];
+        // En un array de bytes, se escribe qué tan grande es el archivo.
+        try {
+            // Try catch en caso que no pueda leer el archivo.
+            java.io.FileInputStream fileInputStream = new java.io.FileInputStream(file);
+            fileInputStream.read(fileBytes);
+            fileInputStream.close();
+        } catch (Exception e) {
+            System.out.println("Error al enviar el archivo" + e.getMessage());
+        }
+        // Encoding para leerlo en base64 File
+        String base64File = java.util.Base64.getEncoder().encodeToString(fileBytes);
+        String fileType = filePath.substring(filePath.lastIndexOf(".") + 1);
+        // Escribe el substring y al mandarlo, lo devuelve en un file.
+        String message = "file://" + fileType + "://" + base64File;
+
+        try {
+            EntityBareJid userID = JidCreate
+                    .entityBareFrom(username + "@" + cuentaDomain.getConfig().getXMPPServiceDomain());
+            Chat chat = chatManager.chatWith(userID);
+            chat.send(message);
+        } catch (Exception e) {
+            System.out.println("Error al enviar el archivo" + e.getMessage());
+            return;
+        }
+        // Try catch para cuando manda el archivo.
+
+        System.out.println("Archivo enviado correctamente");
+    }
+
+
 }
