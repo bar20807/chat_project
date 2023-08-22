@@ -20,6 +20,26 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
 public class Cuentas {
+    private String userName;
+    private String password;
+
+    //Método que recibe el usuario
+    public void setUser (String userName){
+        this.userName = userName;
+    }
+    //Método que retorna dicho usuario 
+    public String getUser (){
+        return userName;
+    }
+    //Método que recibe la contraseña
+    public void setPassword (String password){
+        this.password = password;
+    }
+    //Método que retorna dicha contraseña
+    public String getPassword (){
+        return password;
+    }
+    //Método que recibe la contraseña
     public AbstractXMPPConnection Login(String username, String password) throws XmppStringprepException {
 
         String xmppDomainString = "alumchat.xyz"; 
@@ -29,7 +49,7 @@ public class Cuentas {
         System.out.println("alumchat.xyz");
 
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-            .setUsernameAndPassword(username, password)
+            .setUsernameAndPassword(getUser(), getPassword())
             .setXmppDomain(xmppDomain)
             .setHost("alumchat.xyz")
             .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
